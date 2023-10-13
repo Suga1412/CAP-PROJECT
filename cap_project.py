@@ -108,7 +108,7 @@ new_customer_df.write.format("jdbc") \
   .save()
 
 new_creditcard_df.write.format("jdbc") \
-  .mode("append") \
+  .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_CREDIT_CARD") \
   .option("user", "root") \
@@ -534,5 +534,502 @@ def main2():
         else:
             print("Invalid choice. Please try again.")
 
+#if __name__ == '__main__':
+#   main2()
+#3. Functional Requirements - Data Analysis and Visualization
+
+
+# Function to connect to the MySQL database
+def get_connection():
+    try:
+        connection =  mysql.connector.connect(
+        host="localhost",
+        user=secretss.mysql_username,
+        password=secretss.mysql_password,
+        database="creditcard_capstone" 
+        )
+        if connection.is_connected():
+            return connection
+    except Error as e:
+        print(f"Error while connecting to MySQL: {e}")
+        return None
+
+
+#Functional Requirements 3.1 Find and plot which transaction type has the highest transaction count.
+def plot_transaction_type_with_highest_count():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+        SELECT TRANSACTION_TYPE, COUNT(*) AS TRANSACTION_COUNT
+        FROM CDW_SAPP_CREDIT_CARD
+        GROUP BY TRANSACTION_TYPE
+        ORDER BY TRANSACTION_COUNT DESC;
+        """
+    cursor.execute(query)
+    data = cursor.fetchall() 
+    df = pd.DataFrame(data, columns=["Transaction Type", "Transaction Count"])
+    plt.figure(figsize=(8, 5))
+    #bars = plt.bar(df["Transaction Type"], df["Transaction Count"])
+    plt.bar(df["Transaction Type"], df["Transaction Count"])
+    #for bar in bars:
+     #   yval = bar.get_height()
+     #   plt.text(bar.get_x() + bar.get_width()/2, yval + 1, round(yval, 2), ha='center', va='bottom')
+    plt.xlabel("Transaction Type")
+    plt.ylabel("Number of Transactions")
+    plt.title("Transaction Type with Highest Transaction Count")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.yticks([6000, 6100, 6200, 6300, 6400, 6500, 6600, 6700, 6800, 6900])
+    plt.ylim(6000,6900)
+    plt.grid(axis='y', linestyle ='--', alpha=0.7)
+    plt.show()
+
+    cursor.close()
+    connection.close()
+
+
+
+
+#Functional Requirements 3.2 Find and plot which state has a high number of customers.
+def plot_state_with_high_customer_count():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+        SELECT CUST_STATE, COUNT(DISTINCT SSN) AS CUSTOMER_COUNT
+        FROM CDW_SAPP_CUSTOMER
+        GROUP BY CUST_STATE
+        ORDER BY CUSTOMER_COUNT DESC;
+        """
+    cursor.execute(query)
+    data = cursor.fetchall()
+        
+    df = pd.DataFrame(data, columns=["State", "Customer Count"])
+    plt.figure(figsize=(12, 7))
+    bars = plt.bar(df["State"], df["Customer Count"])
+        # Annotate each bar with its height (the customer count)
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 1, round(yval, 2), ha='center', va='bottom')
+
+    plt.xlabel("State")
+    plt.ylabel("Number of customers")
+    plt.title("Number of customers by State")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.grid(linestyle='--')
+    plt.show()
+    
+    cursor.close()
+    connection.close()
+
+#Functional Requirements 3.3 Find and plot the sum of all transactions for the top 10 customers, and which customer has the highest transaction amount.
+# Hint (use CUST_SSN).
+
+# Function to connect to the MySQL database
+def plot_top_10_customers_with_high_tran_count():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+        SELECT CUST_SSN, SUM(TRANSACTION_VALUE) AS TOTAL_TRANSACTION_VALUE
+        FROM CDW_SAPP_CREDIT_CARD
+        GROUP BY CUST_SSN
+        ORDER BY TOTAL_TRANSACTION_VALUE DESC
+        LIMIT 10;
+        """
+    cursor.execute(query)
+    data = cursor.fetchall()
+        
+    df = pd.DataFrame(data, columns=["Customer SSN", "Total Transaction Value"]) #giving descriptive names
+    plt.figure(figsize=(8, 5))
+    #plt.bar(df["Customer SSN"].astype(str), df["Total Transaction Value"])
+    bars = plt.bar(df["Customer SSN"].astype(str), df["Total Transaction Value"])
+    #for bar in bars:
+    #    yval = bar.get_height()
+    #    plt.text(bar.get_x() + bar.get_width()/2, yval + (0.01 * max(df["Total Transaction Value"])), 
+     #        round(yval, 2), ha='center', va='bottom')
+    plt.xlabel("Customer SSN")
+    plt.ylabel("Total Transaction Value")
+    plt.title("Top 10 Customers by Total Transaction Amount")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.grid(linestyle='--')
+    plt.yticks([4000, 4200, 4400, 4600, 4800, 5000, 5200, 5400, 5600, 5800, 6000])
+    plt.ylim(4000,6000)
+    plt.show()
+    
+    cursor.close()
+    connection.close()
+
+def main3():
+    while True:
+        print("\n \n----------------Welcome to Functional Requirements 3.1, 3.2 and 3.3 - Data Analysis and Visualization----------------\n")
+        print("""
+        Please select a module to dive deeper into its functional requirements:
+              
+        1. Functional Requirements 3.1 - Check which transaction type has the highest transaction counts.
+        2. Functional Requirements 3.2 - Check which state has a high number of customers.
+        3. Functional Requirements 3.1 - Check top 10 customers who has the highest transaction amount.
+        4. Exit
+        """)
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            plot_transaction_type_with_highest_count()
+        elif choice == '2':
+            plot_state_with_high_customer_count()
+        elif choice == '3':
+            plot_top_10_customers_with_high_tran_count()
+        elif choice == '4':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+#if __name__ == '__main__':
+#    main3()
+
+
+#4. Functional Requirements - LOAN Application Dataset
+#Functional Requirements 4.1	Create a Python program to GET (consume) data from the above API endpoint for the loan application dataset.
+#Functional Requirements 4.2	Find the status code of the above API endpoint.
+#Hint: status code could be 200, 400, 404, 401.
+#Functional Requirements 4.3	Once Python reads data from the API, utilize PySpark to load data into RDBMS (SQL). 
+#The table name should be CDW-SAPP_loan_application in the database.
+#Note: Use the “creditcard_capstone” database.
+
+url = "https://raw.githubusercontent.com/platformps/LoanDataset/main/loan_data.json"
+response = requests.get(url)
+
+status_code = response.status_code
+print(f"Status Code: {status_code}")
+
+if status_code == 200:
+    data = response.json()
+else:
+    print(f"Failed to fetch data from API. Status Code: {status_code}")
+    data = None
+
+
+Spark = SparkSession.builder.appName("LoanData").getOrCreate()
+
+loan_app_df = spark.createDataFrame(data)
+#print(loan_app_df.printSchema())
+#print(loan_app_df.show(5))
+
+
+'''loan_app_df.write.format("jdbc") \
+  .mode("append") \
+  .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
+  .option("dbtable", "creditcard_capstone.CDW_SAPP_loan_application ") \
+  .option("user", secretss.mysql_username) \
+  .option("password", secretss.mysql_password) \
+  .save()'''
+
+#5. Functional Requirements - Data Analysis and Visualization for LOAN Application
+#Functional Requirements 5.1 - Find and plot the percentage of applications approved for self-employed applicants.
+def get_connection():
+    try:
+        connection =  mysql.connector.connect(
+        host="localhost",
+        user=secretss.mysql_username,
+        password=secretss.mysql_password,
+        database="creditcard_capstone" 
+        )
+        if connection.is_connected():
+            return connection
+    except Error as e:
+        print(f"Error while connecting to MySQL: {e}")
+        return None
+#Functional Requirements 5.1 - Find and plot the percentage of applications approved for self-employed applicants.
+
+#def plot_app_approved_self_emp():
+#    connection = get_connection()
+#    cursor = connection.cursor()
+
+# Query for total number of self-employed applicants
+''' query_total_self_employed = """
+        SELECT COUNT(Application_ID)
+        FROM CDW_SAPP_loan_application
+        WHERE SELF_EMPLOYED = 'YES';
+    """
+    cursor.execute(query_total_self_employed)
+    total_self_employed = cursor.fetchone()[0]
+
+    # Query for number of approved self-employed applicants
+    query_approved_self_employed = """
+        SELECT COUNT(Application_ID)
+        FROM CDW_SAPP_loan_application
+        WHERE SELF_EMPLOYED = 'YES' AND Application_Status = 'Y';
+    """
+    cursor.execute(query_approved_self_employed)
+    approved_self_employed = cursor.fetchone()[0]
+
+    not_approved_self_employed = total_self_employed - approved_self_employed
+    percentage_approved = (approved_self_employed / total_self_employed) * 100
+
+    # Plot Pie chart data
+     
+    labels = ['Approved', 'Not Approved']
+    sizes = [approved_self_employed, not_approved_self_employed]
+    colors = ['green', 'red']
+    explode = (0.1, 0)  # explode 1st slice
+    plt.figure(figsize=(10, 6))
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.2f%%', shadow=True, startangle=140)
+    plt.title(f"Percentage of Applications Approved for Self-Employed: {percentage_approved:.2f}%")
+    plt.show()
+
+    cursor.close()
+    connection.close()'''
+
+def plot_app_approved_self_emp():
+    connection = get_connection()
+    cursor = connection.cursor()
+    query = """
+    SELECT * FROM CDW_SAPP_loan_application;
+    """
+    cursor.execute(query)
+    data = cursor.fetchall()
+    #column_names = [i[0] for i in cursor.description]  # Extract column headers from cursor description
+    
+    df = pd.DataFrame(data, columns=["Application_ID", "Application_Status", "Credit_History", "Dependents", "Education", "Gender", "Income", "Married", "Property_Area", "Self_Employed"  ])
+    #print(df.head())
+
+    self_employed = df[df['Self_Employed'] == 'Yes']
+    approved_self_employed = self_employed[self_employed['Application_Status'] == 'Y']
+    not_approved_self_employed = len(self_employed) - len(approved_self_employed)
+    percentage_approved = (len(approved_self_employed) / len(self_employed)) * 100
+
+    # Plot Pie chart data
+    labels = ['Approved', 'Not Approved']
+    sizes = [len(approved_self_employed), not_approved_self_employed]
+    colors = ['green', 'red']
+    explode = (0.1, 0)  # explode 1st slice
+    plt.figure(figsize=(10, 6))
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct='%1.1f%%', shadow= True, startangle=140)
+    plt.title(f"Percentage of Applications Approved for Self-Employed: {percentage_approved:.2f}%")
+    plt.show()
+
+    cursor.close()
+    connection.close()
+
+
+
+#Functional Requirements 5.2 Find the percentage of rejection for married male applicants.
+
+def plot_app_rejected_married_male():
+    connection = get_connection()
+    cursor = connection.cursor()
+    query = """
+    SELECT * FROM CDW_SAPP_loan_application;
+    """
+    cursor.execute(query)
+    data = cursor.fetchall()
+    #column_names = [i[0] for i in cursor.description]  # Extract column headers from cursor description
+    
+    df = pd.DataFrame(data, columns=["Application_ID", "Application_Status", "Credit_History", "Dependents", "Education", "Gender", "Income", "Married", "Property_Area", "Self_Employed"  ])
+    #print(df.head())
+    married_males = df[(df['Gender'] == 'Male') & (df['Married'] == 'Yes')]
+    rejected_married_males = married_males[married_males['Application_Status'] == 'N']
+    percentage_rejected = (len(rejected_married_males) / len(married_males)) * 100
+
+    labels = ['Rejected', 'Accepted']
+    sizes = [len(rejected_married_males), len(married_males) - len(rejected_married_males)]
+    colors = ['red', 'blue']
+    explode = (0.1, 0)  # explode 1st slice for emphasis
+
+    plt.figure(figsize=(10, 6))
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+            autopct='%1.2f%%', shadow=True, startangle=140)
+    plt.title(f"Percentage of Rejection for Married Male Applicants: {percentage_rejected:.2f}%")
+    plt.show()
+
+    cursor.close()
+    connection.close()
+
+#Functional Requirements 5.3 
+#Find and plot the top three months with the largest volume of transaction data.
+def plot_top_three_months_largest_vol():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # SQL Query
+    query = """
+SELECT 
+    YEAR(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Year,
+    MONTH(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Month,
+    SUM(TRANSACTION_VALUE) AS Total_Transaction_Value
+FROM 
+    cdw_sapp_credit_card
+GROUP BY 
+    Transaction_Year,
+    Transaction_Month
+ORDER BY 
+    Total_Transaction_Value DESC
+LIMIT 3;
+"""
+    cursor.execute(query)
+    data = cursor.fetchall()
+    #column_names = [i[0] for i in cursor.description]  # Extract column headers from cursor description
+    
+    df = pd.DataFrame(data, columns=["Transaction_Year", "Transaction_Month", "Total_Transaction_Value"])
+    #print(df.head())
+
+# Fetch data into a pandas DataFrame
+#df = pd.read_sql(query, conn)
+
+# Close the connection
+#conn.close()
+
+# Create a new column for the 'Year-Month' format for better visualization
+    df['Year_Month'] = df['Transaction_Year'].astype(str) + "-" + df['Transaction_Month'].astype(str).str.zfill(2)
+
+# Plotting
+    plt.figure(figsize=(8, 5))
+    bars = plt.bar(df['Year_Month'], df['Total_Transaction_Value'], color='skyblue')
+    plt.title('Top 3 Months with the Largest Volume of Transaction Data')
+    plt.xlabel('Month')
+    plt.ylabel('Total Transaction Value')
+    plt.xticks(rotation=45)
+    plt.yticks([200500, 201000, 201500, 202000, 202500, 203000])
+    plt.ylim(200500,203000)
+
+# Displaying the value on top of the bars
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 5, round(yval, 2), ha='center', va='bottom')
+
+    plt.tight_layout()
+    plt.show()
+
+    cursor.close()
+    connection.close()
+
+#------------------OR--------------------
+
+'''def plot_top_three_months_largest_vol():
+    connection = get_connection()
+    cursor = connection.cursor()
+    query = """
+SELECT 
+    YEAR(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Year,
+    MONTH(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Month,
+    COUNT(TRANSACTION_ID) AS Number_of_Transactions
+FROM cdw_sapp_credit_card
+GROUP BY Transaction_Year, Transaction_Month
+ORDER BY Number_of_Transactions DESC
+LIMIT 3;
+
+"""
+    cursor.execute(query)
+    data = cursor.fetchall()
+    df = pd.DataFrame(data, columns=["Transaction_Year", "Transaction_Month", "Number_of_Transactions"])
+
+# Fetch data into a pandas DataFrame
+#df = pd.read_sql(query, conn)
+
+# Close the connection
+#cursor.close()
+#conn.close()
+
+# Create a new column for the 'Year-Month' format for better visualization
+    df['Year_Month'] = df['Transaction_Year'].astype(str) + "-" + df['Transaction_Month'].astype(str).str.zfill(2)
+
+# Plotting
+    plt.figure(figsize=(8, 4))
+    bars = plt.bar(df['Year_Month'], df['Number_of_Transactions'], color='lightgreen')
+    plt.title('Top 3 Months with the Highest Number of Transactions')
+    plt.xlabel('Month')
+    plt.ylabel('Number of Transactions')
+    plt.xticks(rotation=45)
+
+# Displaying the value on top of the bars
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 5, int(yval), ha='center', va='bottom')
+
+    plt.tight_layout()
+    plt.show()
+
+
+    cursor.close()
+    connection.close()'''
+
+
+#Functional Requirements 5.4
+#Find and plot which branch processed the highest total dollar value of healthcare transactions.
+
+def plot_heighest_value_in_healthcare():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = """
+SELECT b.BRANCH_CODE, SUM(c.TRANSACTION_VALUE) AS Total_Healthcare_Transaction_Value
+FROM  CDW_SAPP_BRANCH b
+JOIN CDW_SAPP_CREDIT_CARD c ON b.BRANCH_CODE = c.BRANCH_CODE
+WHERE c.TRANSACTION_TYPE = 'Healthcare'
+GROUP BY b.BRANCH_CODE
+ORDER BY Total_Healthcare_Transaction_Value DESC
+LIMIT 10;
+"""
+    cursor.execute(query)
+    data = cursor.fetchall()
+    df = pd.DataFrame(data, columns=["BRANCH_CODE", "Total_Healthcare_Transaction_Value"])
+
+# Fetch data into a pandas DataFrame
+#df = pd.read_sql(query, conn)
+
+# Close the connection
+#conn.close()
+# Plotting
+    branches = df['BRANCH_CODE'].astype(str).tolist()
+    values = df['Total_Healthcare_Transaction_Value'].tolist()
+
+
+    plt.figure(figsize=(8, 4))
+    plt.bar(df['BRANCH_CODE'].astype(str), df['Total_Healthcare_Transaction_Value'])
+    plt.title('Branch with the Highest Dollar Value of Healthcare Transactions')
+    plt.xlabel('Branch Code')
+    plt.ylabel('Total Transaction Value')
+    plt.xticks(df['BRANCH_CODE'].astype(str), rotation=45)
+
+# Displaying the value on top of the bar
+    for index, value in enumerate(df['Total_Healthcare_Transaction_Value']):
+        plt.text(index, value + 5, f"${round(value, 2):,}", ha='center', va='bottom')
+
+    plt.tight_layout()
+    plt.show()
+
+def main4():
+    while True:
+        print("\n \n----------------Welcome to Functional Requirements 5.1, 5.2 and 5.3 - Data Analysis and Visualization----------------\n")
+        print("""
+        Please select a module to dive deeper into its functional requirements:
+              
+        1. Functional Requirements 5.1 - Check applications approved for self-employed applicants.
+        2. Functional Requirements 5.2 - Check application rejection for married male applicants.
+        3. Functional Requirements 5.3 - Top three months with the largest volume of transactions.
+        4. Functional Requirements 5.4 - Branch processed the highest total dollar value of healthcare transactions.
+        5. Exit
+        """)
+        
+        choice = input("Enter your choice: ")
+        
+        if choice == '1':
+            plot_app_approved_self_emp()
+        elif choice == '2':
+            plot_app_rejected_married_male()
+        elif choice == '3':
+            plot_top_three_months_largest_vol()
+        elif choice == '4':
+            plot_heighest_value_in_healthcare()
+        elif choice == '5':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
 if __name__ == '__main__':
-   main2()
+   main4()
