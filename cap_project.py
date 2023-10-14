@@ -536,6 +536,7 @@ def main2():
 
 #if __name__ == '__main__':
 #   main2()
+
 #3. Functional Requirements - Data Analysis and Visualization
 
 
@@ -1031,5 +1032,37 @@ def main4():
         else:
             print("Invalid choice. Please try again.")
 
+#if __name__ == '__main__':
+#   main4()
+
+
+def main_main():
+    while True:
+        print("\n \n ******************************Welcome to Capstone Project Interface*****************************")
+        print("""
+        Please select a module to dive deeper into its functional requirements:
+              
+        1. Functional Requirements 2.1 - Transaction Details Module
+        2. Functional Requirements 2.2 - Customer Details
+        3. Functional Requirements 3.1, 3.2 and 3.3 - Data Analysis and Visualization
+        4. Functional Requirements 5.1, 5.2 and 5.3 - Data Analysis and Visualization
+        5. Exit
+        """)
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            main1()
+        elif choice == '2':
+            main2()
+        elif choice == '3':
+            main3()
+        elif choice == '4':
+            main4()
+        elif choice == '5':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
 if __name__ == '__main__':
-   main4()
+   main_main()
+
