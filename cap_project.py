@@ -8,6 +8,7 @@ import numpy as np
 import requests
 from pyspark.sql import DataFrame
 import pandas as pd
+import datetime
 import secretss
 
 
@@ -136,7 +137,7 @@ changeDataType_updated_branch2_df = (updated_branch2_df
 new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
 #new_branch_df.show(2)
 
-print(new_branch_df.printSchema())
+#print(new_branch_df.printSchema())
 
 
 #Function Requirement 1.2 Data loading into Database
@@ -403,8 +404,17 @@ def modify_account_details():
 
     # Get the SSN from the user
     #suppose, customer wants to update his CUST_CITY then
-
-    customer_ssn = input("ENter a valid SSN: ")
+     # Get the SSN from the user
+    while True:
+        customer_ssn = input("Please enter the customer's SSN: ")
+        # Ensure the SSN is valid
+        if len(customer_ssn) == 9 and customer_ssn.isnumeric():
+            break # Exit loop when user entered valid SSN
+        elif customer_ssn.lower() == 'exit':
+            print("Returning to the main menu.")
+            return
+        else:
+            print("Invalid input. Please enter a valid 9 digit SSN or type 'exit' to go back to the main menu.")
     
     query = f"""
     SELECT CUST_CITY 
@@ -413,6 +423,7 @@ def modify_account_details():
 
     cursor.execute(query)
     current_city =cursor.fetchone()
+
     if current_city:
         #print(current_city[0])
         print(f"Your city in our records is: {current_city[0]}")
@@ -429,9 +440,10 @@ def modify_account_details():
     print("City updated successfully!")
 
     updated_query = f"""
-    SELECT SSN, FIRST_NAME, LAST_NAME, CUST_CITY 
+    SELECT SSN, FIRST_NAME, LAST_NAME, CUST_CITY
     FROM CDW_SAPP_CUSTOMER 
     WHERE SSN = '{customer_ssn}';"""
+
     cursor.execute(updated_query)
     updated_details =cursor.fetchall()
 
@@ -586,7 +598,7 @@ def main2():
             print("Invalid choice. Please try again.")
 
 #if __name__ == '__main__':
-#   main2()
+#    main2()
 
 #3. Functional Requirements - Data Analysis and Visualization
 
@@ -1114,6 +1126,6 @@ def main_main():
         else:
             print("Invalid choice. Please try again.")
 
-#if __name__ == '__main__':
-#    main_main()
+if __name__ == '__main__':
+    main_main()
 
