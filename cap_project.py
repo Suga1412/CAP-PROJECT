@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, concat, lit, lower, when, lpad, initcap, substring
+from pyspark.sql.types import IntegerType, StringType, TimestampType, DoubleType
 import mysql.connector
 from mysql.connector import Error
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ import pandas as pd
 import secretss
 
 
-spark = SparkSession.builder.appName("CreditCardETL").getOrCreate()
+spark = SparkSession.builder.appName("CreditCardSystem").getOrCreate()
 
 
 branch_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_branch.json"
@@ -47,11 +48,23 @@ updated_credit_card_df = creditcard3_df.withColumn("TIMEID", concat(col("YEAR"),
 #print(updated_credit_card_df.show(12))
 
 renamed_credit_card_df = updated_credit_card_df.withColumnRenamed("CREDIT_CARD_NO", "CUST_CC_NO")
+#print(renamed_credit_card_df.printSchema())
+
+changeDataType_credit_card_df = (renamed_credit_card_df
+                                 .withColumn("CUST_CC_NO", col("CUST_CC_NO").cast(StringType()))
+                                .withColumn("TIMEID", col("TIMEID").cast(StringType()))
+                                .withColumn("CUST_SSN", col("CUST_SSN").cast(IntegerType()))
+                                .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
+                                .withColumn("TRANSACTION_TYPE", col("TRANSACTION_TYPE").cast(StringType()))
+                                .withColumn("TRANSACTION_VALUE", col("TRANSACTION_VALUE").cast(DoubleType()))
+                                .withColumn("TRANSACTION_ID", col("TRANSACTION_ID").cast(IntegerType()))
+                                )
 
 
-new_creditcard_df = renamed_credit_card_df.select("CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE","TRANSACTION_VALUE", "TRANSACTION_ID")
+
+new_creditcard_df = changeDataType_credit_card_df.select("CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE","TRANSACTION_VALUE", "TRANSACTION_ID")
 #print(new_creditcard_df.show(2))
-
+#print(new_creditcard_df.printSchema())
 #print(new_creditcard_df.printSchema())
 
 #print(customer_df.printSchema())
@@ -70,9 +83,30 @@ updated_customer4_df = updated_customer3_df.withColumn("FULL_STREET_ADDRESS", co
 #updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("CUST_PHONE"), 1, 3), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
 updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("),substring(col("CUST_PHONE"), 1, 3), lit(")"), lit("000"), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
 
+updated_customer6_df = (updated_customer5_df
+                        .withColumn("SSN", col("SSN").cast(IntegerType()))
+                        .withColumn("FIRST_NAME", col("FIRST_NAME").cast(StringType()))
+                        .withColumn("MIDDLE_NAME", col("MIDDLE_NAME").cast(StringType()))
+                        .withColumn("LAST_NAME", col("LAST_NAME").cast(StringType()))
+                        .withColumn("CREDIT_CARD_NO", col("CREDIT_CARD_NO").cast(StringType()))
+                        .withColumn("FULL_STREET_ADDRESS", col("FULL_STREET_ADDRESS").cast(StringType()))
+                        .withColumn("CUST_CITY", col("CUST_CITY").cast(StringType()))
+                        .withColumn("CUST_STATE", col("CUST_STATE").cast(StringType()))
+                        .withColumn("CUST_COUNTRY", col("CUST_COUNTRY").cast(StringType()))
+                        .withColumn("CUST_ZIP", col("CUST_ZIP").cast(IntegerType()))
+                        .withColumn("CUST_PHONE", col("CUST_PHONE").cast(StringType()))
+                        .withColumn("CUST_EMAIL", col("CUST_EMAIL").cast(StringType()))
+                        .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType()))
+                        )
 
-new_customer_df = updated_customer5_df.select("SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CREDIT_CARD_NO","FULL_STREET_ADDRESS", "CUST_CITY", "CUST_STATE", "CUST_COUNTRY", "CUST_ZIP","CUST_PHONE", "CUST_EMAIL", "LAST_UPDATED")
+
+#print(updated_customer6_df.printSchema())
+
+new_customer_df = updated_customer6_df.select("SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CREDIT_CARD_NO","FULL_STREET_ADDRESS", "CUST_CITY", "CUST_STATE", "CUST_COUNTRY", "CUST_ZIP","CUST_PHONE", "CUST_EMAIL", "LAST_UPDATED")
 #print(new_customer_df.show(2))
+#print(new_customer_df.printSchema())
+
+#print(new_customer_df.printSchema())
 
 #print(branch_df.show(50))
 #changes required for BRANCH FILE
@@ -83,36 +117,53 @@ updated_branch1_df = branch_df.withColumn("BRANCH_ZIP", when(col("BRANCH_ZIP").i
 updated_branch2_df = updated_branch1_df.withColumn("BRANCH_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("BRANCH_PHONE"), 1, 3), lit("-"), substring(col("BRANCH_PHONE"), 4, 4)))
 
 
-new_branch_df = updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
+#print(updated_branch2_df.printSchema())
+
+
+changeDataType_updated_branch2_df = (updated_branch2_df
+                                    .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
+                                    .withColumn("BRANCH_NAME", col("BRANCH_NAME").cast(StringType()))
+                                    .withColumn("BRANCH_STREET", col("BRANCH_STREET").cast(StringType()))
+                                    .withColumn("BRANCH_CITY", col("BRANCH_CITY").cast(StringType()))
+                                    .withColumn("BRANCH_STATE", col("BRANCH_STATE").cast(StringType()))
+                                    .withColumn("BRANCH_ZIP", col("BRANCH_ZIP").cast(IntegerType()))
+                                    .withColumn("BRANCH_PHONE", col("BRANCH_PHONE").cast(StringType()))
+                                    .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType())) 
+                                    )
+
+
+
+new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
 #new_branch_df.show(2)
 
-#print(new_branch_df.printSchema())
+print(new_branch_df.printSchema())
+
 
 #Function Requirement 1.2 Data loading into Database
 #CREATE DATABSE creditcard_capstone
 
 '''new_branch_df.write.format("jdbc") \
-  .mode("append") \
+  .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_BRANCH") \
-  .option("user", "root") \
-  .option("password", "nabil@1214") \
-  .save()
+  .option("user", secretss.mysql_username) \
+  .option("password", secretss.mysql_password) \
+  .save()'''
 
-new_customer_df.write.format("jdbc") \
-  .mode("append") \
+'''new_customer_df.write.format("jdbc") \
+  .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_CUSTOMER") \
-  .option("user", "root") \
-  .option("password", "nabil@1214") \
-  .save()
+  .option("user", secretss.mysql_username) \
+  .option("password", secretss.mysql_password) \
+  .save()'''
 
-new_creditcard_df.write.format("jdbc") \
+'''new_creditcard_df.write.format("jdbc") \
   .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_CREDIT_CARD") \
-  .option("user", "root") \
-  .option("password", "nabil@1214") \
+  .option("user", secretss.mysql_username) \
+  .option("password", secretss.mysql_password) \
   .save()'''
 
 
@@ -672,7 +723,7 @@ def main3():
               
         1. Functional Requirements 3.1 - Check which transaction type has the highest transaction counts.
         2. Functional Requirements 3.2 - Check which state has a high number of customers.
-        3. Functional Requirements 3.1 - Check top 10 customers who has the highest transaction amount.
+        3. Functional Requirements 3.3 - Check top 10 customers who has the highest transaction amount.
         4. Exit
         """)
         
@@ -1063,6 +1114,6 @@ def main_main():
         else:
             print("Invalid choice. Please try again.")
 
-if __name__ == '__main__':
-   main_main()
+#if __name__ == '__main__':
+#    main_main()
 
