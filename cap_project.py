@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+import json
 from pyspark.sql.functions import col, concat, lit, lower, when, lpad, initcap, substring
 from pyspark.sql.types import IntegerType, StringType, TimestampType, DoubleType
 import mysql.connector
@@ -21,18 +22,20 @@ customer_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_cus
 
 
 
+
 creditcard_df = spark.read.json(creditcard_json_path)
 customer_df = spark.read.json(customer_json_path)
 branch_df = spark.read.json(branch_json_path)
+    
 
 #print(creditcard_df.printSchema())
-total_rows = creditcard_df.count()
+#total_rows = creditcard_df.count()
 #print(f"Total rows in customer_df: {total_rows}")
 
-total_rows = customer_df.count()
+#total_rows = customer_df.count()
 #print(f"Total rows in customer_df: {total_rows}")
 
-total_rows = branch_df.count()
+#total_rows = branch_df.count()
 #print(f"Total rows in customer_df: {total_rows}")
 
 #print(customer_df.show(2))
@@ -42,15 +45,8 @@ total_rows = branch_df.count()
 creditcard1_df = creditcard_df.withColumn("YEAR", col("YEAR").cast("string"))
 creditcard2_df = creditcard1_df.withColumn("MONTH", lpad(col("MONTH").cast("string"), 2, "0"))
 creditcard3_df = creditcard2_df.withColumn("DAY", lpad(col("DAY").cast("string"), 2, "0"))
-#print(creditcard3_df.show(12))
-
-
 updated_credit_card_df = creditcard3_df.withColumn("TIMEID", concat(col("YEAR"), col("MONTH"), col("DAY")))
-#print(updated_credit_card_df.show(12))
-
 renamed_credit_card_df = updated_credit_card_df.withColumnRenamed("CREDIT_CARD_NO", "CUST_CC_NO")
-#print(renamed_credit_card_df.printSchema())
-
 changeDataType_credit_card_df = (renamed_credit_card_df
                                  .withColumn("CUST_CC_NO", col("CUST_CC_NO").cast(StringType()))
                                 .withColumn("TIMEID", col("TIMEID").cast(StringType()))
@@ -60,8 +56,6 @@ changeDataType_credit_card_df = (renamed_credit_card_df
                                 .withColumn("TRANSACTION_VALUE", col("TRANSACTION_VALUE").cast(DoubleType()))
                                 .withColumn("TRANSACTION_ID", col("TRANSACTION_ID").cast(IntegerType()))
                                 )
-
-
 
 new_creditcard_df = changeDataType_credit_card_df.select("CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE","TRANSACTION_VALUE", "TRANSACTION_ID")
 #print(new_creditcard_df.show(2))
@@ -141,7 +135,7 @@ new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_
 
 
 #Function Requirement 1.2 Data loading into Database
-#CREATE DATABSE creditcard_capstone
+#CREATE DATABSE creditcard_capstone'''
 
 '''new_branch_df.write.format("jdbc") \
   .mode("overwrite") \
@@ -149,17 +143,17 @@ new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_
   .option("dbtable", "creditcard_capstone.CDW_SAPP_BRANCH") \
   .option("user", secretss.mysql_username) \
   .option("password", secretss.mysql_password) \
-  .save()'''
+  .save()
 
-'''new_customer_df.write.format("jdbc") \
+new_customer_df.write.format("jdbc") \
   .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_CUSTOMER") \
   .option("user", secretss.mysql_username) \
   .option("password", secretss.mysql_password) \
-  .save()'''
+  .save()
 
-'''new_creditcard_df.write.format("jdbc") \
+new_creditcard_df.write.format("jdbc") \
   .mode("overwrite") \
   .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
   .option("dbtable", "creditcard_capstone.CDW_SAPP_CREDIT_CARD") \
@@ -311,7 +305,7 @@ def fetch_transactions_by_state():
     cursor.close()
     connection.close()
 
-def main1():
+def transaction_details_module():
     while True:
         print("\n \n ----------------Welcome to Functional Requirements 2.1 - Transaction Details Module----------------\n ")
         print("""
@@ -338,7 +332,7 @@ def main1():
             print("Invalid choice. Please try again.")
 
 #if __name__ == '__main__':
-#   main1()
+#    transaction_details_module()
 
 
 #2.2 Customer Details Module
@@ -439,8 +433,22 @@ def modify_account_details():
     connection.commit()
     print("City updated successfully!")
 
+    new_last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    update_last_updated_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET LAST_UPDATED = '{new_last_updated}'
+    WHERE SSN = '{customer_ssn}';
+    """
+
+    cursor.execute(update_last_updated_query)
+    connection.commit()
+    print("LAST_UPDATED column updated successfully!")
+
+
+
     updated_query = f"""
-    SELECT SSN, FIRST_NAME, LAST_NAME, CUST_CITY
+    SELECT SSN, FIRST_NAME, LAST_NAME, CUST_CITY, LAST_UPDATED
     FROM CDW_SAPP_CUSTOMER 
     WHERE SSN = '{customer_ssn}';"""
 
@@ -568,7 +576,7 @@ def Transaction_range():
     cursor.close()
     connection.close()
 
-def main2():
+def customer_details():
     while True:
         print("\n \n----------------Welcome to Functional Requirements 2.2 - Customer Details----------------\n")
         print("""
@@ -598,7 +606,32 @@ def main2():
             print("Invalid choice. Please try again.")
 
 #if __name__ == '__main__':
-#    main2()
+#    customer_details()
+
+def main():
+    while True:
+        print("\n \n ******************************Welcome to Capstone Project Interface*****************************")
+        print("""
+        Please select a module to dive deeper into its functional requirements:
+              
+        1. Functional Requirements 2.1 - Transaction Details Module
+        2. Functional Requirements 2.2 - Customer Details
+        3. Exit
+        """)
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            transaction_details_module()
+        elif choice == '2':
+            customer_details()
+        elif choice == '3':
+            print("Exiting...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+#if __name__ == '__main__':
+#    main()
+
 
 #3. Functional Requirements - Data Analysis and Visualization
 
@@ -727,7 +760,7 @@ def plot_top_10_customers_with_high_tran_count():
     cursor.close()
     connection.close()
 
-def main3():
+def credit_card_dataset_analysis_and_visualization():
     while True:
         print("\n \n----------------Welcome to Functional Requirements 3.1, 3.2 and 3.3 - Data Analysis and Visualization----------------\n")
         print("""
@@ -753,7 +786,7 @@ def main3():
         else:
             print("Invalid choice. Please try again.")
 #if __name__ == '__main__':
-#    main3()
+#    credit_card_dataset_analysis_and_visualization()
 
 
 #4. Functional Requirements - LOAN Application Dataset
@@ -764,33 +797,35 @@ def main3():
 #The table name should be CDW-SAPP_loan_application in the database.
 #Note: Use the “creditcard_capstone” database.
 
-url = "https://raw.githubusercontent.com/platformps/LoanDataset/main/loan_data.json"
-response = requests.get(url)
-
-status_code = response.status_code
-print(f"Status Code: {status_code}")
-
-if status_code == 200:
-    data = response.json()
-else:
-    print(f"Failed to fetch data from API. Status Code: {status_code}")
-    data = None
+def fetch_data_from_api(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Failed to fetch data from API. Status Code: {response.status_code}")
+    return None
 
 
-Spark = SparkSession.builder.appName("LoanData").getOrCreate()
+def save_to_database(df):
+    df.write.format("jdbc") \
+      .mode("overwrite") \
+      .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
+      .option("dbtable", "creditcard_capstone.CDW_SAPP_loan_application ") \
+      .option("user", secretss.mysql_username) \
+      .option("password", secretss.mysql_password) \
+      .save()
 
-loan_app_df = spark.createDataFrame(data)
-#print(loan_app_df.printSchema())
-#print(loan_app_df.show(5))
+def fetch_data():
+    url = "https://raw.githubusercontent.com/platformps/LoanDataset/main/loan_data.json"
+    data = fetch_data_from_api(url)
 
+    if data:
+        spark = SparkSession.builder.appName("LoanData").getOrCreate()
+        loan_app_df = spark.createDataFrame(data)
+        save_to_database(loan_app_df)
 
-'''loan_app_df.write.format("jdbc") \
-  .mode("append") \
-  .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
-  .option("dbtable", "creditcard_capstone.CDW_SAPP_loan_application ") \
-  .option("user", secretss.mysql_username) \
-  .option("password", secretss.mysql_password) \
-  .save()'''
+#if __name__ == "__main__":
+#   fetch_data()
 
 #5. Functional Requirements - Data Analysis and Visualization for LOAN Application
 #Functional Requirements 5.1 - Find and plot the percentage of applications approved for self-employed applicants.
@@ -1066,7 +1101,7 @@ LIMIT 10;
     plt.tight_layout()
     plt.show()
 
-def main4():
+def loan_application_data_analysis_and_visualization():
     while True:
         print("\n \n----------------Welcome to Functional Requirements 5.1, 5.2 and 5.3 - Data Analysis and Visualization----------------\n")
         print("""
@@ -1096,10 +1131,10 @@ def main4():
             print("Invalid choice. Please try again.")
 
 #if __name__ == '__main__':
-#   main4()
+#   loan_application_data_analysis_and_visualization()
 
 
-def main_main():
+def main():
     while True:
         print("\n \n ******************************Welcome to Capstone Project Interface*****************************")
         print("""
@@ -1113,13 +1148,13 @@ def main_main():
         """)
         choice = input("Enter your choice: ")
         if choice == '1':
-            main1()
+            transaction_details_module()
         elif choice == '2':
-            main2()
+            customer_details()
         elif choice == '3':
-            main3()
+            credit_card_dataset_analysis_and_visualization()
         elif choice == '4':
-            main4()
+            loan_application_data_analysis_and_visualization()
         elif choice == '5':
             print("Exiting...")
             break
@@ -1127,5 +1162,5 @@ def main_main():
             print("Invalid choice. Please try again.")
 
 if __name__ == '__main__':
-    main_main()
+    main()
 
