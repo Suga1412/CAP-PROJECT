@@ -22,10 +22,11 @@ customer_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_cus
 
 
 
-
-creditcard_df = spark.read.json(creditcard_json_path)
-customer_df = spark.read.json(customer_json_path)
-branch_df = spark.read.json(branch_json_path)
+def load_to_dataframe():
+    creditcard_df = spark.read.json(creditcard_json_path)
+    customer_df = spark.read.json(customer_json_path)
+    branch_df = spark.read.json(branch_json_path)
+    return creditcard_df, customer_df, branch_df
     
 
 #print(creditcard_df.printSchema())
@@ -42,125 +43,127 @@ branch_df = spark.read.json(branch_json_path)
 #creditcard_df.show(2)
 #branch_df.show(50)
 
-creditcard1_df = creditcard_df.withColumn("YEAR", col("YEAR").cast("string"))
-creditcard2_df = creditcard1_df.withColumn("MONTH", lpad(col("MONTH").cast("string"), 2, "0"))
-creditcard3_df = creditcard2_df.withColumn("DAY", lpad(col("DAY").cast("string"), 2, "0"))
-updated_credit_card_df = creditcard3_df.withColumn("TIMEID", concat(col("YEAR"), col("MONTH"), col("DAY")))
-renamed_credit_card_df = updated_credit_card_df.withColumnRenamed("CREDIT_CARD_NO", "CUST_CC_NO")
-changeDataType_credit_card_df = (renamed_credit_card_df
-                                 .withColumn("CUST_CC_NO", col("CUST_CC_NO").cast(StringType()))
-                                .withColumn("TIMEID", col("TIMEID").cast(StringType()))
-                                .withColumn("CUST_SSN", col("CUST_SSN").cast(IntegerType()))
-                                .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
-                                .withColumn("TRANSACTION_TYPE", col("TRANSACTION_TYPE").cast(StringType()))
-                                .withColumn("TRANSACTION_VALUE", col("TRANSACTION_VALUE").cast(DoubleType()))
-                                .withColumn("TRANSACTION_ID", col("TRANSACTION_ID").cast(IntegerType()))
-                                )
+def mapping_process_creditcard_data(df):
+    creditcard1_df = df.withColumn("YEAR", col("YEAR").cast("string"))
+    creditcard2_df = creditcard1_df.withColumn("MONTH", lpad(col("MONTH").cast("string"), 2, "0"))
+    creditcard3_df = creditcard2_df.withColumn("DAY", lpad(col("DAY").cast("string"), 2, "0"))
+    updated_credit_card_df = creditcard3_df.withColumn("TIMEID", concat(col("YEAR"), col("MONTH"), col("DAY")))
+    renamed_credit_card_df = updated_credit_card_df.withColumnRenamed("CREDIT_CARD_NO", "CUST_CC_NO")
+    changeDataType_credit_card_df = (renamed_credit_card_df
+                                    .withColumn("CUST_CC_NO", col("CUST_CC_NO").cast(StringType()))
+                                    .withColumn("TIMEID", col("TIMEID").cast(StringType()))
+                                    .withColumn("CUST_SSN", col("CUST_SSN").cast(IntegerType()))
+                                    .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
+                                    .withColumn("TRANSACTION_TYPE", col("TRANSACTION_TYPE").cast(StringType()))
+                                    .withColumn("TRANSACTION_VALUE", col("TRANSACTION_VALUE").cast(DoubleType()))
+                                    .withColumn("TRANSACTION_ID", col("TRANSACTION_ID").cast(IntegerType()))
+                                    )
 
-new_creditcard_df = changeDataType_credit_card_df.select("CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE","TRANSACTION_VALUE", "TRANSACTION_ID")
-#print(new_creditcard_df.show(2))
-#print(new_creditcard_df.printSchema())
-#print(new_creditcard_df.printSchema())
+    new_creditcard_df = changeDataType_credit_card_df.select("CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE","TRANSACTION_VALUE", "TRANSACTION_ID")
+    return new_creditcard_df
+    #print(new_creditcard_df.show(2))
+    #print(new_creditcard_df.printSchema())
+    #print(new_creditcard_df.printSchema())
 
 #print(customer_df.printSchema())
 #1. Convert the Name to Title Case
 #2. Convert the middle name in lower case
 #3. Convert the Last Name in Title Case
-updated_customer1_df = customer_df.withColumn("FIRST_NAME", initcap(col("FIRST_NAME")))
-updated_customer2_df = updated_customer1_df.withColumn("MIDDLE_NAME", lower(col("FIRST_NAME")))
-updated_customer3_df = updated_customer2_df.withColumn("LAST_NAME", initcap(col("LAST_NAME")))
+def mapping_process_customer_data(df):
+    updated_customer1_df = df.withColumn("FIRST_NAME", initcap(col("FIRST_NAME")))
+    updated_customer2_df = updated_customer1_df.withColumn("MIDDLE_NAME", lower(col("FIRST_NAME")))
+    updated_customer3_df = updated_customer2_df.withColumn("LAST_NAME", initcap(col("LAST_NAME")))
 
-#4. Concatenate Apartment no and Street name of customer's Residence with comma as a seperator (Street, Apartment)
-updated_customer4_df = updated_customer3_df.withColumn("FULL_STREET_ADDRESS", concat(col("STREET_NAME"), lit(","), col("APT_NO")))
-#print(updated_customer4_df.show(2))
+    #4. Concatenate Apartment no and Street name of customer's Residence with comma as a seperator (Street, Apartment)
+    updated_customer4_df = updated_customer3_df.withColumn("FULL_STREET_ADDRESS", concat(col("STREET_NAME"), lit(","), col("APT_NO")))
+    #print(updated_customer4_df.show(2))
 
-#5. Change the format of phone number to (XXX)XXX-XXXX
-#updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("CUST_PHONE"), 1, 3), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
-updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("),substring(col("CUST_PHONE"), 1, 3), lit(")"), lit("000"), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
+    #5. Change the format of phone number to (XXX)XXX-XXXX
+    #updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("CUST_PHONE"), 1, 3), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
+    updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("),substring(col("CUST_PHONE"), 1, 3), lit(")"), lit("000"), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
 
-updated_customer6_df = (updated_customer5_df
-                        .withColumn("SSN", col("SSN").cast(IntegerType()))
-                        .withColumn("FIRST_NAME", col("FIRST_NAME").cast(StringType()))
-                        .withColumn("MIDDLE_NAME", col("MIDDLE_NAME").cast(StringType()))
-                        .withColumn("LAST_NAME", col("LAST_NAME").cast(StringType()))
-                        .withColumn("CREDIT_CARD_NO", col("CREDIT_CARD_NO").cast(StringType()))
-                        .withColumn("FULL_STREET_ADDRESS", col("FULL_STREET_ADDRESS").cast(StringType()))
-                        .withColumn("CUST_CITY", col("CUST_CITY").cast(StringType()))
-                        .withColumn("CUST_STATE", col("CUST_STATE").cast(StringType()))
-                        .withColumn("CUST_COUNTRY", col("CUST_COUNTRY").cast(StringType()))
-                        .withColumn("CUST_ZIP", col("CUST_ZIP").cast(IntegerType()))
-                        .withColumn("CUST_PHONE", col("CUST_PHONE").cast(StringType()))
-                        .withColumn("CUST_EMAIL", col("CUST_EMAIL").cast(StringType()))
-                        .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType()))
-                        )
+    updated_customer6_df = (updated_customer5_df
+                            .withColumn("SSN", col("SSN").cast(IntegerType()))
+                            .withColumn("FIRST_NAME", col("FIRST_NAME").cast(StringType()))
+                            .withColumn("MIDDLE_NAME", col("MIDDLE_NAME").cast(StringType()))
+                            .withColumn("LAST_NAME", col("LAST_NAME").cast(StringType()))
+                            .withColumn("CREDIT_CARD_NO", col("CREDIT_CARD_NO").cast(StringType()))
+                            .withColumn("FULL_STREET_ADDRESS", col("FULL_STREET_ADDRESS").cast(StringType()))
+                            .withColumn("CUST_CITY", col("CUST_CITY").cast(StringType()))
+                            .withColumn("CUST_STATE", col("CUST_STATE").cast(StringType()))
+                            .withColumn("CUST_COUNTRY", col("CUST_COUNTRY").cast(StringType()))
+                            .withColumn("CUST_ZIP", col("CUST_ZIP").cast(IntegerType()))
+                            .withColumn("CUST_PHONE", col("CUST_PHONE").cast(StringType()))
+                            .withColumn("CUST_EMAIL", col("CUST_EMAIL").cast(StringType()))
+                            .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType()))
+                            )
 
 
-#print(updated_customer6_df.printSchema())
+    #print(updated_customer6_df.printSchema())
 
-new_customer_df = updated_customer6_df.select("SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CREDIT_CARD_NO","FULL_STREET_ADDRESS", "CUST_CITY", "CUST_STATE", "CUST_COUNTRY", "CUST_ZIP","CUST_PHONE", "CUST_EMAIL", "LAST_UPDATED")
-#print(new_customer_df.show(2))
-#print(new_customer_df.printSchema())
+    new_customer_df = updated_customer6_df.select("SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CREDIT_CARD_NO","FULL_STREET_ADDRESS", "CUST_CITY", "CUST_STATE", "CUST_COUNTRY", "CUST_ZIP","CUST_PHONE", "CUST_EMAIL", "LAST_UPDATED")
+    return new_customer_df
+    #print(new_customer_df.show(2))
+    #print(new_customer_df.printSchema())
 
-#print(new_customer_df.printSchema())
+    #print(new_customer_df.printSchema())
 
 #print(branch_df.show(50))
 #changes required for BRANCH FILE
 #1. If the source value is null load default (99999) value else Direct move
 #2. Change the format of phone number to (XXX)XXX-XXXX
 
-updated_branch1_df = branch_df.withColumn("BRANCH_ZIP", when(col("BRANCH_ZIP").isNull(), lit(99999)).otherwise(col("BRANCH_ZIP")))
-updated_branch2_df = updated_branch1_df.withColumn("BRANCH_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("BRANCH_PHONE"), 1, 3), lit("-"), substring(col("BRANCH_PHONE"), 4, 4)))
+def mapping_process_branch_data(df):
+    updated_branch1_df = df.withColumn("BRANCH_ZIP", when(col("BRANCH_ZIP").isNull(), lit(99999)).otherwise(col("BRANCH_ZIP")))
+    updated_branch2_df = updated_branch1_df.withColumn("BRANCH_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("BRANCH_PHONE"), 1, 3), lit("-"), substring(col("BRANCH_PHONE"), 4, 4)))
 
 
-#print(updated_branch2_df.printSchema())
+    #print(updated_branch2_df.printSchema())
 
 
-changeDataType_updated_branch2_df = (updated_branch2_df
-                                    .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
-                                    .withColumn("BRANCH_NAME", col("BRANCH_NAME").cast(StringType()))
-                                    .withColumn("BRANCH_STREET", col("BRANCH_STREET").cast(StringType()))
-                                    .withColumn("BRANCH_CITY", col("BRANCH_CITY").cast(StringType()))
-                                    .withColumn("BRANCH_STATE", col("BRANCH_STATE").cast(StringType()))
-                                    .withColumn("BRANCH_ZIP", col("BRANCH_ZIP").cast(IntegerType()))
-                                    .withColumn("BRANCH_PHONE", col("BRANCH_PHONE").cast(StringType()))
-                                    .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType())) 
-                                    )
+    changeDataType_updated_branch2_df = (updated_branch2_df
+                                        .withColumn("BRANCH_CODE", col("BRANCH_CODE").cast(IntegerType()))
+                                        .withColumn("BRANCH_NAME", col("BRANCH_NAME").cast(StringType()))
+                                        .withColumn("BRANCH_STREET", col("BRANCH_STREET").cast(StringType()))
+                                        .withColumn("BRANCH_CITY", col("BRANCH_CITY").cast(StringType()))
+                                        .withColumn("BRANCH_STATE", col("BRANCH_STATE").cast(StringType()))
+                                        .withColumn("BRANCH_ZIP", col("BRANCH_ZIP").cast(IntegerType()))
+                                        .withColumn("BRANCH_PHONE", col("BRANCH_PHONE").cast(StringType()))
+                                        .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType())) 
+                                        )
 
 
 
-new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
+    new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
+    return new_branch_df
 #new_branch_df.show(2)
 
 #print(new_branch_df.printSchema())
 
 
 #Function Requirement 1.2 Data loading into Database
-#CREATE DATABSE creditcard_capstone'''
+#CREATE DATABSE creditcard_capstone
 
-'''new_branch_df.write.format("jdbc") \
-  .mode("overwrite") \
-  .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
-  .option("dbtable", "creditcard_capstone.CDW_SAPP_BRANCH") \
-  .option("user", secretss.mysql_username) \
-  .option("password", secretss.mysql_password) \
-  .save()
+def load_to_database(df, table_name):
+    df.write.format("jdbc") \
+    .mode("overwrite") \
+    .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
+    .option("dbtable", f"creditcard_capstone.{table_name}") \
+    .option("user", secretss.mysql_username) \
+    .option("password", secretss.mysql_password) \
+    .save()
 
-new_customer_df.write.format("jdbc") \
-  .mode("overwrite") \
-  .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
-  .option("dbtable", "creditcard_capstone.CDW_SAPP_CUSTOMER") \
-  .option("user", secretss.mysql_username) \
-  .option("password", secretss.mysql_password) \
-  .save()
 
-new_creditcard_df.write.format("jdbc") \
-  .mode("overwrite") \
-  .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
-  .option("dbtable", "creditcard_capstone.CDW_SAPP_CREDIT_CARD") \
-  .option("user", secretss.mysql_username) \
-  .option("password", secretss.mysql_password) \
-  .save()'''
+if __name__ == "__main__":
+    creditcard_df, customer_df, branch_df = load_to_dataframe()
+    processed_creditcard_df = mapping_process_creditcard_data(creditcard_df)
+    processed_customer_df = mapping_process_customer_data(customer_df)
+    processed_branch_df = mapping_process_branch_data(branch_df)
 
+
+#load_to_database(processed_creditcard_df, 'CDW_SAPP_CREDIT_CARD')
+#load_to_database(processed_customer_df, 'CDW_SAPP_CUSTOMER')
+#load_to_database(processed_branch_df, 'CDW_SAPP_BRANCH')
 
 #2. Functional Requirements - Application Front-End
 
@@ -1161,6 +1164,6 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#   main()
 
