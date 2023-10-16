@@ -988,7 +988,7 @@ def plot_top_three_months_largest_vol_tran_count():
     connection = get_connection()
     cursor = connection.cursor()
 
-    '''query = """
+    query = """
             SELECT 
             YEAR(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Year,
             MONTH(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Month,
@@ -1029,7 +1029,7 @@ def plot_top_three_months_largest_vol_tran_count():
     plt.show()
 
     cursor.close()
-    connection.close()'''
+    connection.close()
 #plot_top_three_months_largest_vol_tran_count()
 
     '''query = """
@@ -1058,7 +1058,7 @@ def plot_top_three_months_largest_vol_tran_count():
     plt.figure(figsize=(10, 6))
     
     # Line Chart
-    plt.plot(df['Year_Month'], df['Total_Transaction_Value'], marker='o', color='green', linestyle='-')
+    plt.plot(df['Year_Month'], df['Total_Transaction_Value'], marker='o', color='green', linestyle='-', label='Transactions Value')
     
     for i, row in df.iterrows():
         month = row['Year_Month']
@@ -1075,6 +1075,7 @@ def plot_top_three_months_largest_vol_tran_count():
     plt.xticks(rotation=45)
     plt.grid(True, which="both", ls="--", c='0.7')
     plt.tight_layout()
+    plt.legend()
     
     plt.show()'''
 
@@ -1159,10 +1160,10 @@ def main():
         print("""
         Please select a module to dive deeper into its functional requirements:
               
-        1. Functional Requirements 2.1 - Transaction Details Module
-        2. Functional Requirements 2.2 - Customer Details
-        3. Functional Requirements 3.1, 3.2 and 3.3 - Data Analysis and Visualization
-        4. Functional Requirements 5.1, 5.2 and 5.3 - Data Analysis and Visualization
+        1. Transaction Details Module
+        2. Customer Details
+        3. Credit Card dataset - Data Analysis and Visualization
+        4. Loan Application Dataset - Data Analysis and Visualization
         5. Exit
         """)
         choice = input("Enter your choice: ")
@@ -1180,6 +1181,6 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
-#if __name__ == '__main__':
-#   main()
+if __name__ == '__main__':
+   main()
 
