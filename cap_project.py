@@ -15,15 +15,14 @@ spark = SparkSession.builder.appName("CreditCardSystem").getOrCreate()
 
 #Functional Requirement 1.1 - Data Extraction and Transformation with Python and PySpark
 
-branch_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_branch.json"
-creditcard_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_credit.json"
-customer_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_custmer.json"
+branch_json_path = "cdw_sapp_branch.json"
+creditcard_json_path = "cdw_sapp_credit.json"
+customer_json_path ="cdw_sapp_custmer.json"
 
-
-#---OR---Using Relative Paths (assuming all files are in the same folder as the .py script) 
-#branch_json_path = "cdw_sapp_branch.json"
-#creditcard_json_path = "cdw_sapp_credit.json"
-#customer_json_path ="cdw_sapp_custmer.json"
+#---OR---Using Absolute Paths
+#branch_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_branch.json"
+#creditcard_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_credit.json"
+#customer_json_path = "C:/Users/Learner_9ZH3Z179/Desktop/CAP PROJECT/cdw_sapp_custmer.json"
 
 
 def load_to_dataframe():
@@ -118,8 +117,8 @@ def load_to_database(df, table_name):
     .save()
 
 
-if __name__ == "__main__":
-    creditcard_df, customer_df, branch_df = load_to_dataframe()
+#if __name__ == "__main__":
+#    creditcard_df, customer_df, branch_df = load_to_dataframe()
 #    processed_creditcard_df = mapping_process_creditcard_data(creditcard_df)
 #    processed_customer_df = mapping_process_customer_data(customer_df)
 #    processed_branch_df = mapping_process_branch_data(branch_df)
@@ -154,6 +153,7 @@ def get_connection():
 # Order by day in descending order.
 
 def fetch_transactions_by_zip_code_month_and_year():
+
     connection = get_connection()
     cursor = connection.cursor()
     
@@ -287,9 +287,9 @@ def fetch_transactions_by_state():
     print("\n \n")
     if data1:
         total_branches = data1[0][1]
-        print(f"{state} has {total_branches} branches.\n")
+        print(f"{state} has {total_branches} branche/s.\n")
 
-    df = pd.DataFrame(data, columns=["BRANCH_STATE", "TOTAL_TRANSACTIONS", "TOTAL_VALUE"])
+    df = pd.DataFrame(data, columns=["STATE", "TOTAL_TRANSACTIONS", "TOTAL_VALUE"])
     print(df)
     print("\n")
     cursor.close()
@@ -407,9 +407,13 @@ def modify_customer_phone_number(sn):
     cursor.execute(query)
     current_phone =cursor.fetchone()
 
-    if current_phone:
-        #print(current_city[0])
-        print(f"\nYour phone in our records is: {current_phone[0]}")
+    if not current_phone:
+        print(f"NO record found for SSN: {sn}")
+        cursor.close()
+        connection.close()
+        return
+
+    print(f"\nYour phone in our records is: {current_phone[0]}")
     new_phone = input("\nEnter your new phone number. Please follow this format (XXX)XXX-XXXX: ")
 
     update_query = f"""
@@ -460,10 +464,13 @@ def modify_email_address(sn):
     cursor.execute(query)
     current_email =cursor.fetchone()
 
-    if current_email:
-        #print(current_email[0])
-        print(f"\nYour email address in our records is: {current_email[0]}")
-
+    if not current_email:
+        print(f"No record found for SSN: {sn}")
+        cursor.close()
+        connection.close()
+        return
+    
+    print(f"\nYour email address in our records is: {current_email[0]}")
     new_email = input("\nEnter your new email address: ")
 
     update_query = f"""
@@ -510,9 +517,12 @@ def modify_city_name(sn):
 
     cursor.execute(query)
     current_city =cursor.fetchone()
-
-    if current_city:
-        print(f"\nYour city in our records is: {current_city[0]}")
+    if not current_city:
+        print(f"NO record found for SSN: {sn}")
+        cursor.close()
+        connection.close()
+        return
+    print(f"\nYour city in our records is: {current_city[0]}")
 
     new_city = input("\nEnter your new city name: ")
 
@@ -562,9 +572,13 @@ def modify_full_Street_address(sn):
 
     cursor.execute(query)
     current_address =cursor.fetchone()
-
-    if current_address:
-        print(f"Your full street address in our records is: {current_address[0]}")
+    if not current_address:
+        print(f"NO record found for SSN: {sn}")
+        cursor.close()
+        connection.close()
+        return
+    
+    print(f"Your full street address in our records is: {current_address[0]}")
 
     new_address = input("\nEnter your new full street address(Format:  Street name, Apartment number): ")
 
@@ -607,6 +621,7 @@ def modify_account_details():
     while True:
         customer_ssn = input("\nPlease enter the customer's SSN: ")
         if len(customer_ssn) == 9 and customer_ssn.isnumeric():
+            print("\nPlease note that the following details cannot be modified in this project: 1.SSN 2.Middle Name 3.First Name 4.Last Name 5.Credit Card No. 6.State Name 7.Country Name 8.Zip Code")
             print("\nWhat do you want to update? Please select a number accordingly:")
             print("\n1. Update your Phone Number\n2. Modify your email address\n3. Update your  City\n4. Update your full street address\n5. Exit this menu") 
             number = input("\nSelect: ") 
@@ -841,19 +856,21 @@ def plot_transaction_type_with_highest_count():
     cursor.execute(query)
     data = cursor.fetchall() 
     df = pd.DataFrame(data, columns=["Transaction Type", "Transaction Count"])
-    plt.figure(figsize=(7, 4))  # Adjusted size for horizontal bars
-
-    # Generate colors from a colormap
+    plt.figure(figsize=(7, 4))  
     colors = plt.cm.tab10(np.linspace(0, 1, len(df)))
+    #plt.cm.tab10 -> This referes to the tab10 colormap provided by matplotlib.
+    #(np.linspace(0, 1, len(df))) -> function from the numpy library
+    #Combine ->It maps the evenly spaced numbers generated by np.linespace to colors in the tab10 colormap
 
     bars = plt.barh(df["Transaction Type"], df["Transaction Count"], color=colors)
-
     for idx, bar in enumerate(bars):
         bar_width = bar.get_width()
         plt.text(bar_width - 0.02 * max(df["Transaction Count"]), idx, format(int(bar_width), ','), 
             va='center', ha='right', color='white', fontsize=12)
-        #plt.text(bar_width - 0.02 * max(df["Transaction Count"]), idx, round(bar_width, 2), 
-        #        va='center', ha='right', color='white', fontsize=12)
+        #enumerate is built in python function
+        #X-coordinate of the text ->(bar_width - 0.02 * max(df["Transaction Count"]))
+        #y-axis -> idx(Which places the text in line with the bar it correspondent to)
+        #(format(int(bar_width), ',') -> convert bar width to an int and formats its with (,) as thousand seperators
 
     plt.ylabel("Transaction Type")
     plt.xlabel("Number of Transactions")
@@ -925,11 +942,8 @@ def plot_top_10_customers_with_high_transaction_count():
         
     df = pd.DataFrame(data, columns=["Customer SSN", "Total Transaction Value"]) 
     
-
-
     plt.figure(figsize=(8, 5))
-    
-    bars = plt.bar(df["Customer SSN"].astype(str), df["Total Transaction Value"], color=(0.12156863, 0.46666667, 0.70588235))
+    bars = plt.bar(df["Customer SSN"].astype(str), df["Total Transaction Value"])
     
     for bar in bars:
         yval = bar.get_height()
@@ -952,7 +966,7 @@ def plot_top_10_customers_with_high_transaction_count():
 
 def credit_card_dataset_analysis_and_visualization():
     while True:
-        print("\n \n----------------Welcome to Functional Requirements 3.1, 3.2 and 3.3 - Data Analysis and Visualization----------------\n")
+        print("\n \n----------------Welcome to Credit Card dataset - Data Analysis and Visualization Module----------------\n")
         print("""
         Please select a module to dive deeper into its functional requirements:
               
@@ -982,7 +996,6 @@ def credit_card_dataset_analysis_and_visualization():
 #4. Functional Requirements - LOAN Application Dataset
 #Functional Requirements 4.1	Create a Python program to GET (consume) data from the above API endpoint for the loan application dataset.
 #Functional Requirements 4.2	Find the status code of the above API endpoint.
-#Hint: status code could be 200, 400, 404, 401.
 #Functional Requirements 4.3	Once Python reads data from the API, utilize PySpark to load data into RDBMS (SQL). 
 #The table name should be CDW-SAPP_loan_application in the database.
 #Note: Use the “creditcard_capstone” database.
@@ -1020,7 +1033,7 @@ def fetch_data():
 #   fetch_data()
 
 
-#5. Functional Requirements - Data Analysis and Visualization for LOAN Application
+#5. Functional Requirements - Data Analysis and Visualization for Loan Application
 def get_connection():
     try:
         connection =  mysql.connector.connect(
@@ -1034,6 +1047,8 @@ def get_connection():
     except Error as e:
         print(f"Error while connecting to MySQL: {e}")
         return None
+    
+
 #Functional Requirements 5.1 - Find and plot the percentage of applications approved for self-employed applicants.
 
 def plot_app_approved_self_emp():
@@ -1052,7 +1067,7 @@ def plot_app_approved_self_emp():
     not_approved_self_employed = len(self_employed) - len(approved_self_employed)
     percentage_approved = (len(approved_self_employed) / len(self_employed)) * 100
 
-    # Plot Pie chart data
+    # Plotting in Pie chart data
     labels = ['Approved', 'Not Approved']
     sizes = [len(approved_self_employed), not_approved_self_employed]
     colors = ['green', 'red']
@@ -1089,7 +1104,6 @@ def plot_app_rejected_married_male():
     sizes = [len(rejected_married_males), len(married_males) - len(rejected_married_males)]
     colors = ['red', 'blue']
     explode = (0.1, 0)  # explode 1st slice for emphasis
-
     plt.figure(figsize=(10, 6))
     plt.pie(sizes, explode=explode, labels=labels, colors=colors,
             autopct='%1.2f%%', shadow=True, startangle=140)
@@ -1129,7 +1143,7 @@ def plot_top_three_months_largest_vol_tran_count():
 
     plt.figure(figsize=(12, 6))
     
-    # Plotting the line graph
+    # Now, Plotting the line graph
     plt.plot(df['Year_Month'], df['Number_of_Transactions'], marker='o', label='Number of Transactions', color='blue')
     
     # Highlighting the top three months with special markers and annotating each point with its number of transactions
@@ -1237,8 +1251,10 @@ def plot_heighest_value_in_healthcare():
     plt.xlabel('Branch Code')
     plt.ylabel('Total Transaction Value ($)')
     plt.xticks(df['BRANCH_CODE'].astype(str), rotation=45)
-   
-    # Displaying the value on top of the bar
+    plt.yticks([3000, 3300, 3600, 3900, 4200, 4500])
+    plt.ylim(3000, 4500)
+    plt.grid(axis='y', linestyle='--')
+    #To disply value on the top bar with '$' sign
     for index, value in enumerate(df['Total_Healthcare_Transaction_Value']):
         plt.text(index, value + 5, f"${round(value, 2):,}", ha='center', va='bottom')
 
@@ -1252,7 +1268,7 @@ def plot_heighest_value_in_healthcare():
 
 def loan_application_data_analysis_and_visualization():
     while True:
-        print("\n \n----------------Welcome to Functional Requirements 5.1, 5.2 and 5.3 - Data Analysis and Visualization----------------\n")
+        print("\n \n----------------Welcome to Loan Application Dataset - Data Analysis and Visualization Module----------------\n")
         print("""
         Please select a module to dive deeper into its functional requirements:
               
@@ -1291,8 +1307,8 @@ def main():
               
         1. Transaction Details Module
         2. Customer Details Module
-        3. Credit Card dataset - Data Analysis and Visualization
-        4. Loan Application Dataset - Data Analysis and Visualization
+        3. Credit Card dataset - Data Analysis and Visualization Module
+        4. Loan Application Dataset - Data Analysis and Visualization Module
         5. Exit
         """)
         choice = input("Enter your choice: ")
@@ -1310,6 +1326,6 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
-if __name__ == '__main__':
-   main()
+#if __name__ == '__main__':
+#   main()
 
