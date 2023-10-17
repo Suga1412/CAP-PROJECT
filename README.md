@@ -61,6 +61,6 @@ Requirement No. 5.b - Monthly trasnactions value of year 2018
 ![Req_5 3_Months_VS_Transaction_Value](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/cd83e06d-2d98-476e-a3ac-71d69301e7c1)
 
 Requirement No. 6 - Top 10 branches processed Healthcare transaction
-![Req_5 4_Top_10_Branches_Processed_Healthcare_Transaction](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/b2fcff7b-2162-48d1-a400-bc3b4c314500)
+![Req_5 4_Top_10_Branches_Processed_Healthcare_Trasnaction](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/13cc9b4d-bde9-4fd4-8a0b-2f0c6d9c1dbb)
 
 
