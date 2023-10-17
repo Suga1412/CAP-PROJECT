@@ -32,22 +32,7 @@ def load_to_dataframe():
     branch_df = spark.read.json(branch_json_path)
     return creditcard_df, customer_df, branch_df
 
-#creditcard_df, customer_df, branch_df = load_to_dataframe()   
-
-#print(creditcard_df.printSchema())
-#total_rows = creditcard_df.count()
-#print(f"Total rows in customer_df: {total_rows}")
-
-#total_rows = customer_df.count()
-#print(f"Total rows in customer_df: {total_rows}")
-
-#total_rows = branch_df.count()
-#print(f"Total rows in customer_df: {total_rows}")
-
-#print(customer_df.show(2))
-#creditcard_df.show(2)
-#branch_df.show(50)
-
+#Mapping process for Creditcard data
 def mapping_process_creditcard_data(df):
     creditcard1_df = df.withColumn("YEAR", col("YEAR").cast("string"))
     creditcard2_df = creditcard1_df.withColumn("MONTH", lpad(col("MONTH").cast("string"), 2, "0"))
@@ -70,19 +55,13 @@ def mapping_process_creditcard_data(df):
 
 
 #Mapping process for Customer data
-#1. Convert the Name to Title Case
-#2. Convert the middle name in lower case
-#3. Convert the Last Name in Title Case
 def mapping_process_customer_data(df):
     updated_customer1_df = df.withColumn("FIRST_NAME", initcap(col("FIRST_NAME")))
     updated_customer2_df = updated_customer1_df.withColumn("MIDDLE_NAME", lower(col("FIRST_NAME")))
     updated_customer3_df = updated_customer2_df.withColumn("LAST_NAME", initcap(col("LAST_NAME")))
 
-    #4. Concatenate Apartment no and Street name of customer's Residence with comma as a seperator (Street, Apartment)
     updated_customer4_df = updated_customer3_df.withColumn("FULL_STREET_ADDRESS", concat(col("STREET_NAME"), lit(","), col("APT_NO")))
-    #print(updated_customer4_df.show(2))
 
-    #5. Change the format of phone number to (XXX)XXX-XXXX
     #updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("CUST_PHONE"), 1, 3), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
     updated_customer5_df = updated_customer4_df.withColumn("CUST_PHONE", concat(lit("("),substring(col("CUST_PHONE"), 1, 3), lit(")"), lit("000"), lit("-"), substring(col("CUST_PHONE"), 4, 4)))
 
@@ -102,22 +81,10 @@ def mapping_process_customer_data(df):
                             .withColumn("LAST_UPDATED", col("LAST_UPDATED").cast(TimestampType()))
                             )
 
-
-    #print(updated_customer6_df.printSchema())
-
     new_customer_df = updated_customer6_df.select("SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CREDIT_CARD_NO","FULL_STREET_ADDRESS", "CUST_CITY", "CUST_STATE", "CUST_COUNTRY", "CUST_ZIP","CUST_PHONE", "CUST_EMAIL", "LAST_UPDATED")
     return new_customer_df
 
-    #print(new_customer_df.show(2))
-    #print(new_customer_df.printSchema())
-
-    #print(new_customer_df.printSchema())
-
-#print(branch_df.show(50))
-#changes required for BRANCH FILE
-#1. If the source value is null load default (99999) value else Direct move
-#2. Change the format of phone number to (XXX)XXX-XXXX
-
+#Mapping process for branch data
 def mapping_process_branch_data(df):
     updated_branch1_df = df.withColumn("BRANCH_ZIP", when(col("BRANCH_ZIP").isNull(), lit(99999)).otherwise(col("BRANCH_ZIP")))
     updated_branch2_df = updated_branch1_df.withColumn("BRANCH_PHONE", concat(lit("("), lit("000"), lit(")"),substring(col("BRANCH_PHONE"), 1, 3), lit("-"), substring(col("BRANCH_PHONE"), 4, 4)))
@@ -136,8 +103,6 @@ def mapping_process_branch_data(df):
 
     new_branch_df = changeDataType_updated_branch2_df.select("BRANCH_CODE", "BRANCH_NAME", "BRANCH_STREET", "BRANCH_CITY", "BRANCH_STATE","BRANCH_ZIP", "BRANCH_PHONE", "LAST_UPDATED")
     return new_branch_df
-#new_branch_df.show(2)
-#print(new_branch_df.printSchema())
 
 
 #Function Requirement 1.2 - Data loading into Database
@@ -194,12 +159,11 @@ def fetch_transactions_by_zip_code_month_and_year():
     
     while True:
         cust_zip = input("Please enter the ZIP Code: ")
-        # Ensure the zip code is valid
         if len(cust_zip) == 5 and cust_zip.isnumeric():
-            break # Exit loop when user entered valid zip code
+            break 
         elif cust_zip.lower() == 'exit':
             print("Returning to the main menu.")
-            return # Exits the function and returns to the main function
+            return 
         else:
             print("\nInvalid input. Please enter a valid 5 digit zip code or type 'exit' to go back to the main menu.\n")
             
@@ -237,12 +201,12 @@ def fetch_transactions_by_zip_code_month_and_year():
 
     cursor.execute(query)
     transactions = cursor.fetchall()
-    #for row in transactions:
-    #    print(row)
+    print("\n")
     df = pd.DataFrame(transactions, columns=["FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "TIMEID", "TRANSACTION_TYPE","TRANSACTION_VALUE", "CUST_ZIP"])
     if df.empty:
-        print("No record available.") 
+        print("\nNo record available.") 
     else:
+        print("\n")
         print(df)
 
     cursor.close()
@@ -251,12 +215,11 @@ def fetch_transactions_by_zip_code_month_and_year():
 
 #Functional Requirements 2.1.2 Used to display the number and total values of transactions for a given type.
 
-
 def fetch_transactions_by_type():
     connection = get_connection()
     cursor = connection.cursor()
     while True:
-        transaction_type = input("Please enter the Transaction_type from below list: ['Bills', 'Healthcare', 'Test', 'Education', 'Entertainment' 'Gas', 'Grocery' :   ")
+        transaction_type = input("Please enter the Transaction type from below list: ['Bills', 'Healthcare', 'Test', 'Education', 'Entertainment' 'Gas', 'Grocery'] : ")
         user_input = transaction_type.upper()
         if user_input in ['EDUCATION', 'BILLS', 'HEALTHCARE', 'ENTERTAINMENT', 'GROCERY', 'GAS', 'TEST']:
             break
@@ -264,7 +227,7 @@ def fetch_transactions_by_type():
             print("Returning to the main menu.")
             return
         else:
-            print("\nInvalid input.Enter valid transaction type or type 'exit' to go back to the main menu.\n")
+            print("\nInvalid input. Enter valid transaction type or type 'exit' to go back to the main menu.\n")
 
     query = f"""
     SELECT TRANSACTION_TYPE, COUNT(TRANSACTION_ID) AS NUMBER_OF_TRANSACTION, SUM(TRANSACTION_VALUE) AS TOTAL_VALUE_OF_TRANSACTION
@@ -280,6 +243,7 @@ def fetch_transactions_by_type():
     if df.empty:
         print("No record available.") 
     else:
+        print("\n")
         print(df)
 
     cursor.close()
@@ -293,7 +257,7 @@ def fetch_transactions_by_state():
     cursor = connection.cursor()
 
     while True:
-        state = input("Please enter the state abbreviation.\n'AL' - Alabama\n 'AR' - Arkansas\n 'CA' - California\n 'CT' - Connecticut\n 'FL' - Florida\n 'GA' - Georgia\n 'IL' - Illinois\n 'IN' - Indiana\n 'IA' - Iowa\n 'KY' - Kentucky\n 'MD' - Maryland\n 'MA' - Massachusetts\n 'MI' - Michigan\n 'MN' - Minnesota\n 'MS' - Mississippi\n 'MT' - Montana\n 'NJ' - New Jersey\n 'NY' - New York\n 'NC' - North Carolina\n 'OH' - Ohio\n 'PA' - Pennsylvania\n 'SC' - South Carolina\n 'TX' - Texas\n 'VA' - Virginia\n 'WA' - Washington\n 'WI' - Wisconsin:    ").upper()
+        state = input("Please enter the state abbreviation from below list.\n'AL' - Alabama\n 'AR' - Arkansas\n 'CA' - California\n 'CT' - Connecticut\n 'FL' - Florida\n 'GA' - Georgia\n 'IL' - Illinois\n 'IN' - Indiana\n 'IA' - Iowa\n 'KY' - Kentucky\n 'MD' - Maryland\n 'MA' - Massachusetts\n 'MI' - Michigan\n 'MN' - Minnesota\n 'MS' - Mississippi\n 'MT' - Montana\n 'NJ' - New Jersey\n 'NY' - New York\n 'NC' - North Carolina\n 'OH' - Ohio\n 'PA' - Pennsylvania\n 'SC' - South Carolina\n 'TX' - Texas\n 'VA' - Virginia\n 'WA' - Washington\n 'WI' - Wisconsin\n:    ").upper()
         if state in ['MN', 'IL', 'NY', 'FL', 'PA', 'NJ', 'CT', 'OH', 'MI', 'KY', 'MD', 'WA', 'CA', 'TX', 'NC', 'VA', 'GA', 'MT', 'AR', 'MS', 'WI', 'IN', 'SC', 'MA', 'IA', 'AL']:
             break
         elif state.lower() == 'exit':
@@ -323,7 +287,7 @@ def fetch_transactions_by_state():
     print("\n \n")
     if data1:
         total_branches = data1[0][1]
-        print(f"{state} has {total_branches} branches.")
+        print(f"{state} has {total_branches} branches.\n")
 
     df = pd.DataFrame(data, columns=["BRANCH_STATE", "TOTAL_TRANSACTIONS", "TOTAL_VALUE"])
     print(df)
@@ -430,61 +394,152 @@ def check_account_details():
 
 #Functional Requirements 2.2.2 Used to modify the existing account details of a customer.
 # Connect to the database
-def modify_account_details():
+
+def modify_customer_phone_number(sn):
     connection = get_connection()
     cursor = connection.cursor()
 
-    # Get the SSN from the user
-    #suppose, customer wants to update his CUST_CITY then
-     # Get the SSN from the user
-    while True:
-        customer_ssn = input("Please enter the customer's SSN: ")
-        if len(customer_ssn) == 9 and customer_ssn.isnumeric():
-            break 
-        elif customer_ssn.lower() == 'exit':
-            print("Returning to the main menu.")
-            return
-        else:
-            print("\nInvalid input. Please enter a valid 9 digit SSN or type 'exit' to go back to the main menu.\n")
-    
     query = f"""
-    SELECT CUST_CITY 
+    SELECT CUST_PHONE
     FROM CDW_SAPP_CUSTOMER 
-    WHERE SSN = '{customer_ssn}';"""
+    WHERE SSN = '{sn}';"""
 
     cursor.execute(query)
-    current_city =cursor.fetchone()
+    current_phone =cursor.fetchone()
 
-    if current_city:
+    if current_phone:
         #print(current_city[0])
-        print(f"Your city in our records is: {current_city[0]}")
-
-    new_city = input("Enter your new city name: ")
+        print(f"\nYour phone in our records is: {current_phone[0]}")
+    new_phone = input("\nEnter your new phone number. Please follow this format (XXX)XXX-XXXX: ")
 
     update_query = f"""
     UPDATE CDW_SAPP_CUSTOMER
-    SET CUST_CITY = '{new_city}'
-    WHERE SSN = '{customer_ssn}';"""
+    SET CUST_PHONE = '{new_phone}'
+    WHERE SSN = '{sn}';"""
 
     cursor.execute(update_query)
     connection.commit()
-    print("City updated successfully!")
+    print("\nPhone number updated successfully!")
 
     new_last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     update_last_updated_query = f"""
     UPDATE CDW_SAPP_CUSTOMER
     SET LAST_UPDATED = '{new_last_updated}'
-    WHERE SSN = '{customer_ssn}';
+    WHERE SSN = '{sn}';
     """
     cursor.execute(update_last_updated_query)
     connection.commit()
-    print("LAST_UPDATED column updated successfully!")
+    print("\nLAST_UPDATED column updated successfully!\n")
+
+    updated_query = f"""
+    SELECT SSN, FIRST_NAME, MIDDLE_NAME, LAST_NAME, CUST_PHONE, LAST_UPDATED
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(updated_query)
+    updated_details =cursor.fetchall()
+
+    df = pd.DataFrame(updated_details, columns=["SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CUST_PHONE", "LAST_UPDATED"])
+    print(df)
+    print("\n")
+
+    cursor.close()
+    connection.close()
+
+
+def modify_email_address(sn):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = f"""
+    SELECT CUST_EMAIL
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(query)
+    current_email =cursor.fetchone()
+
+    if current_email:
+        #print(current_email[0])
+        print(f"\nYour email address in our records is: {current_email[0]}")
+
+    new_email = input("\nEnter your new email address: ")
+
+    update_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET CUST_EMAIL = '{new_email}'
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(update_query)
+    connection.commit()
+    print("\nEmail address updated successfully!")
+
+    new_last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    update_last_updated_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET LAST_UPDATED = '{new_last_updated}'
+    WHERE SSN = '{sn}';
+    """
+    cursor.execute(update_last_updated_query)
+    connection.commit()
+    print("\nLAST_UPDATED column updated successfully!\n")
+
+    updated_query = f"""
+    SELECT SSN, FIRST_NAME, MIDDLE_NAME, LAST_NAME, CUST_EMAIL, LAST_UPDATED
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(updated_query)
+    updated_details =cursor.fetchall()
+
+    df = pd.DataFrame(updated_details, columns=["SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CUST_EMAIL", "LAST_UPDATED"])
+    print(df)
+    print("\n")
+    cursor.close()
+    connection.close()
+
+def modify_city_name(sn):
+    connection = get_connection()
+    cursor = connection.cursor()
+    query = f"""
+    SELECT CUST_CITY 
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(query)
+    current_city =cursor.fetchone()
+
+    if current_city:
+        print(f"\nYour city in our records is: {current_city[0]}")
+
+    new_city = input("\nEnter your new city name: ")
+
+    update_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET CUST_CITY = '{new_city}'
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(update_query)
+    connection.commit()
+    print("\nCity updated successfully!\n")
+
+    new_last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    update_last_updated_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET LAST_UPDATED = '{new_last_updated}'
+    WHERE SSN = '{sn}';
+    """
+    cursor.execute(update_last_updated_query)
+    connection.commit()
+    print("\nLAST_UPDATED column updated successfully!\n")
 
     updated_query = f"""
     SELECT SSN, FIRST_NAME, MIDDLE_NAME, LAST_NAME, CUST_CITY, LAST_UPDATED
     FROM CDW_SAPP_CUSTOMER 
-    WHERE SSN = '{customer_ssn}';"""
+    WHERE SSN = '{sn}';"""
 
     cursor.execute(updated_query)
     updated_details =cursor.fetchall()
@@ -492,17 +547,101 @@ def modify_account_details():
     #column_names = [column[0] for column in cursor.description]
     df = pd.DataFrame(updated_details, columns=["SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CUST_CITY", "LAST_UPDATED"])
     print(df)
-
+    print("\n")
     cursor.close()
     connection.close()
 
+def modify_full_Street_address(sn):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    query = f"""
+    SELECT FULL_STREET_ADDRESS
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(query)
+    current_address =cursor.fetchone()
+
+    if current_address:
+        print(f"Your full street address in our records is: {current_address[0]}")
+
+    new_address = input("\nEnter your new full street address(Format:  Street name, Apartment number): ")
+
+    update_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET FULL_STREET_ADDRESS = '{new_address}'
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(update_query)
+    connection.commit()
+    print("\nAddress updated successfully!\n")
+
+    new_last_updated = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    update_last_updated_query = f"""
+    UPDATE CDW_SAPP_CUSTOMER
+    SET LAST_UPDATED = '{new_last_updated}'
+    WHERE SSN = '{sn}';
+    """
+    cursor.execute(update_last_updated_query)
+    connection.commit()
+    print("\nLAST_UPDATED column updated successfully!\n")
+
+    updated_query = f"""
+    SELECT SSN, FIRST_NAME, MIDDLE_NAME, LAST_NAME, CUST_CITY, FULL_STREET_ADDRESS, LAST_UPDATED
+    FROM CDW_SAPP_CUSTOMER 
+    WHERE SSN = '{sn}';"""
+
+    cursor.execute(updated_query)
+    updated_details =cursor.fetchall()
+
+    df = pd.DataFrame(updated_details, columns=["SSN", "FIRST_NAME", "MIDDLE_NAME", "LAST_NAME", "CUST_CITY", "FULL_STREET_ADDRESS", "LAST_UPDATED"])
+    print(df)
+    print("\n")
+    cursor.close()
+    connection.close()
+    
+
+def modify_account_details():
+    while True:
+        customer_ssn = input("\nPlease enter the customer's SSN: ")
+        if len(customer_ssn) == 9 and customer_ssn.isnumeric():
+            print("\nWhat do you want to update? Please select a number accordingly:")
+            print("\n1. Update your Phone Number\n2. Modify your email address\n3. Update your  City\n4. Update your full street address\n5. Exit this menu") 
+            number = input("\nSelect: ") 
+            if number == '1':
+                modify_customer_phone_number(customer_ssn)
+                break
+            elif number == '2':
+                modify_email_address(customer_ssn)
+                break
+            elif number == '3':
+                modify_city_name(customer_ssn)
+                print("\nAs you've updated your city, please also update your full street address.\n")
+                modify_full_Street_address(customer_ssn)
+                break    
+            elif number == '4':
+                modify_full_Street_address(customer_ssn)
+                break
+            elif number == '5':
+                print("\nExiting...\n")
+        elif customer_ssn.lower() == 'exit':
+            print("\nReturning to the main menu.")
+            return
+        else:
+            print("\nInvalid input. Please enter a valid 9 digit SSN or type 'exit' to go back to the main menu.\n")
+
+#modify_account_details()
+
+
 #Functional Requirements 2.2.3 Used to generate a monthly bill for a credit card number for a given month and year.
-# Connect to the database
+
 def monthly_bill():
     connection = get_connection()
     cursor = connection.cursor()
     while True:
-        card_number = input("Please enter the credit card number: ")
+        card_number = input("Please enter 16 digit credit card number: ")
         if len(card_number) == 16 and card_number.isnumeric():
             break 
         elif card_number.lower() == 'exit':
@@ -533,7 +672,6 @@ def monthly_bill():
         else:
             print("\nInvalid input. Please enter a valid 4-digit year or type 'exit' to go back to the main menu.\n") 
 
-# Formulate the query
     query = f"""
         SELECT CUST_SSN, CUST_CC_NO, SUM(TRANSACTION_VALUE) AS TOTAL_BILL, COUNT(TRANSACTION_ID) AS NUMBER_OF_TRANSACTIONS
         FROM CDW_SAPP_CREDIT_CARD
@@ -547,6 +685,7 @@ def monthly_bill():
     if df.empty:
         print("No record available")
     else:
+        print("\n")
         print(df)
 
     cursor.close()
@@ -560,12 +699,10 @@ def monthly_bill():
 def Transaction_range():
     connection = get_connection()
     cursor = connection.cursor()
-    #customer_ssn = input("Please enter the customer's SSN: ")
     while True:
         customer_ssn = input("Please enter the SSN: ")
-        # Ensure the SSN is valid
         if len(customer_ssn) == 9 and customer_ssn.isnumeric():
-            break # Exit loop when user entered valid SSN
+            break 
         elif customer_ssn.lower() == 'exit':
             print("Returning to the main menu.")
             return
@@ -574,9 +711,9 @@ def Transaction_range():
 
     while True:
         start_date = input("Please enter the Starting date in YYYYMMDD format. Example: 20180101 for 1st Jan 2018): ")
-        # Ensure the date is valid
+        
         if len(start_date) == 8 and customer_ssn.isnumeric():
-            break # Exit loop when user entered valid starting date
+            break 
         elif start_date.lower() == 'exit':
             print("Returning to the main menu.")
             return
@@ -585,16 +722,15 @@ def Transaction_range():
 
     while True:
         end_date = input("Please enter the ending date in YYYYMMDD format. Example: 20180101 for 1st Jan 2018): ")
-        # Ensure the date is valid
+       
         if len(end_date) == 8 and customer_ssn.isnumeric():
-            break # Exit loop when user entered valid ending date
+            break 
         elif end_date.lower() == 'exit':
             print("Returning to the main menu.")
             return
         else:
             print("\nInvalid input. Please enter a valid 8 digit date format YYYYMMDD  or type 'exit' to go back to the main menu.\n")
 
-# Formulate the query
     query = f"""
         SELECT *
         FROM CDW_SAPP_CREDIT_CARD
@@ -607,8 +743,10 @@ def Transaction_range():
 
     df = pd.DataFrame(tras, columns=["CUST_CC_NO", "TIMEID", "CUST_SSN", "BRANCH_CODE", "TRANSACTION_TYPE", "TRANSACTION_VALUE", "TRANSACTION_ID"])
     if df.empty:
+        print("\n")
         print("No record available")
     else:
+        print("\n")
         print(df)
 
     cursor.close()
@@ -621,8 +759,8 @@ def customer_details():
         print("""
         Please select a module to dive deeper into its functional requirements:
               
-        1. Check the existing account details of a the customer.
-        2. Modify the existing account details of a customer.
+        1. Check the existing account details of the customer.
+        2. Modify the existing account details of the customer.
         3. Generate monthly credit card bill through the card number for a given month and year.
         4. Generate transactions made by a customer between two dates range.
         5. Exit
@@ -653,7 +791,7 @@ def main():
         Please select a module to dive deeper into its functional requirements:
               
         1. Transaction Details Module
-        2. Customer Details
+        2. Customer Details Module
         3. Exit
         """)
         choice = input("Enter your choice: ")
@@ -702,24 +840,6 @@ def plot_transaction_type_with_highest_count():
         """
     cursor.execute(query)
     data = cursor.fetchall() 
-    '''df = pd.DataFrame(data, columns=["Transaction Type", "Transaction Count"])
-    plt.figure(figsize=(7, 5))
-    #colors = plt.cm.Paired(np.linspace(0,1,len(df)))
-    #bars = plt.bar(df["Transaction Type"], df["Transaction Count"], color=colors)
-    bars = plt.bar(df["Transaction Type"], df["Transaction Count"])
-    #plt.bar(df["Transaction Type"], df["Transaction Count"])
-    for bar in bars:
-        yval = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, yval + 1, round(yval, 2), ha='center', va='bottom')
-    plt.xlabel("Transaction Type")
-    plt.ylabel("Number of Transactions")
-    plt.title("Transaction Type with Highest Transaction Count")
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.yticks([6000, 6100, 6200, 6300, 6400, 6500, 6600, 6700, 6800, 6900])
-    plt.ylim(6000,6900)
-    plt.grid(axis='y', linestyle ='--', alpha=0.7)
-    plt.show()'''
     df = pd.DataFrame(data, columns=["Transaction Type", "Transaction Count"])
     plt.figure(figsize=(7, 4))  # Adjusted size for horizontal bars
 
@@ -768,7 +888,7 @@ def plot_state_with_high_customer_count():
     df = pd.DataFrame(data, columns=["State", "Customer Count"])
     plt.figure(figsize=(12, 7))
     bars = plt.bar(df["State"], df["Customer Count"])
-        # Annotate each bar with its height (the customer count)
+    # Annotate each bar with its height (the customer count)
     for bar in bars:
         yval = bar.get_height()
         plt.text(bar.get_x() + bar.get_width()/2, yval + 1, round(yval, 2), ha='center', va='bottom')
@@ -836,9 +956,9 @@ def credit_card_dataset_analysis_and_visualization():
         print("""
         Please select a module to dive deeper into its functional requirements:
               
-        1. Functional Requirements 3.1 - Check which transaction type has the highest transaction counts.
-        2. Functional Requirements 3.2 - Check which state has a high number of customers.
-        3. Functional Requirements 3.3 - Check top 10 customers who has the highest transaction amount.
+        1. Check which transaction type has the highest transaction counts.
+        2. Check which state has a high number of customers.
+        3. Check top 10 customers who has the highest transaction amount.
         4. Exit
         """)
         
@@ -926,7 +1046,6 @@ def plot_app_approved_self_emp():
     data = cursor.fetchall()
     
     df = pd.DataFrame(data, columns=["Application_ID", "Application_Status", "Credit_History", "Dependents", "Education", "Gender", "Income", "Married", "Property_Area", "Self_Employed"  ])
-    #print(df.head())
 
     self_employed = df[df['Self_Employed'] == 'Yes']
     approved_self_employed = self_employed[self_employed['Application_Status'] == 'Y']
@@ -947,6 +1066,7 @@ def plot_app_approved_self_emp():
     connection.close()
 
 #plot_app_approved_self_emp()
+
 
 #Functional Requirements 5.2 Find the percentage of rejection for married male applicants.
 
@@ -984,6 +1104,7 @@ def plot_app_rejected_married_male():
 
 #Functional Requirements 5.3 
 #Find and plot the top three months with the largest volume of transaction data.
+# Largest volume in terms of Number of Transactions.
 def plot_top_three_months_largest_vol_tran_count():
     connection = get_connection()
     cursor = connection.cursor()
@@ -1032,7 +1153,13 @@ def plot_top_three_months_largest_vol_tran_count():
     connection.close()
 #plot_top_three_months_largest_vol_tran_count()
 
-    '''query = """
+
+#Find and plot the top three months with the largest volume of transaction data.
+# Largest volume in terms of total trasnaction value.
+'''def plot_top_three_months_largest_vol_tran_count():
+    connection = get_connection()
+    cursor = connection.cursor()
+    query = """
         SELECT 
         YEAR(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Year,
         MONTH(STR_TO_DATE(TIMEID, '%Y%m%d')) AS Transaction_Month,
@@ -1077,7 +1204,9 @@ def plot_top_three_months_largest_vol_tran_count():
     plt.tight_layout()
     plt.legend()
     
-    plt.show()'''
+    plt.show()
+    cursor.close()
+    connection.close()'''
 
 #plot_top_three_months_largest_vol_tran_count()
 
@@ -1127,10 +1256,10 @@ def loan_application_data_analysis_and_visualization():
         print("""
         Please select a module to dive deeper into its functional requirements:
               
-        1. Functional Requirements 5.1 - Check applications approved for self-employed applicants.
-        2. Functional Requirements 5.2 - Check application rejection for married male applicants.
-        3. Functional Requirements 5.3 - Top three months with the largest volume of transactions.
-        4. Functional Requirements 5.4 - Branch processed the highest total dollar value of healthcare transactions.
+        1. Check applications approved for self-employed applicants.
+        2. Check application rejection for married male applicants.
+        3. Top three months with the largest volume of transactions.
+        4. Branch processed the highest total dollar value of healthcare transactions.
         5. Exit
         """)
         
