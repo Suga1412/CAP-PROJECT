@@ -1290,7 +1290,7 @@ def main():
         Please select a module to dive deeper into its functional requirements:
               
         1. Transaction Details Module
-        2. Customer Details
+        2. Customer Details Module
         3. Credit Card dataset - Data Analysis and Visualization
         4. Loan Application Dataset - Data Analysis and Visualization
         5. Exit
