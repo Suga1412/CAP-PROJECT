@@ -5,15 +5,13 @@ SELECT C.FIRST_NAME, C.MIDDLE_NAME, C.LAST_NAME, CC.TIMEID, CC.TRANSACTION_TYPE,
         FROM CDW_SAPP_CUSTOMER C 
         INNER JOIN CDW_SAPP_CREDIT_CARD CC ON C.SSN = CC.CUST_SSN
         WHERE c.CUST_ZIP = '60091' 
-        AND SUBSTRING(CC.TIMEID, 1, 4) = '2018' 
-        AND SUBSTRING(CC.TIMEID, 5, 2) = '10'
+        AND TIMEID LIKE '201801%'
         ORDER BY TIMEID DESC;
         
 #2. Display the number and total values of transactions for a given type.
 SELECT TRANSACTION_TYPE, COUNT(TRANSACTION_ID) AS NUMBER_OF_TRANSACTION, SUM(TRANSACTION_VALUE) AS TOTAL_VALUE_OF_TRANSACTION
     FROM CDW_SAPP_CREDIT_CARD
-    WHERE TRANSACTION_TYPE = 'BILLS'
-    GROUP BY TRANSACTION_TYPE;
+    WHERE TRANSACTION_TYPE = 'BILLS';
     
     
 #3. Display the total number and total values of transactions for branches in a given state.
@@ -40,7 +38,7 @@ SELECT CUST_SSN, CUST_CC_NO, SUM(TRANSACTION_VALUE) AS TOTAL_BILL, COUNT(TRANSAC
         FROM CDW_SAPP_CREDIT_CARD
         WHERE CUST_CC_NO = '4210653349028689' 
         AND TIMEID LIKE '201803%'
-        GROUP BY CUST_SSN, CUST_CC_NO;
+        GROUP BY CUST_SSN;
         
 #4. Display the transactions made by a customer between two dates. Order by year, month, and day in descending order
 	SELECT *
