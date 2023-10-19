@@ -1345,7 +1345,7 @@ def main():
         print("""
         Please select a module to dive deeper into its functional requirements:
               
-        1. Application Fron-End Program
+        1. Application Front-End Program
             a. Transaction Details Module
             b. Customer Details Module
         2. Credit Card dataset - Data Analysis and Visualization Module
@@ -1371,6 +1371,6 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    main()
 
