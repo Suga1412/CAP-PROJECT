@@ -40,27 +40,27 @@ The project's primary goal is to manage an ETL process for both Credit Card Data
 
 ## Visualization
 Requirement No. 1 - Transaction type with highest trasaction count
-![Req_3 1_Transaction_Type_With_Highest_Transaction_Count](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/6e0cc0ae-ef50-4494-aa70-4d48dfb9f175)
+![Req_3 1_Transaction_Type_With_Highest_Transaction_Count](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/d855cd51-d92f-43df-9ec9-c2f8d298aefd)
 
 Requirement No. 2 - Number of customers by state
-![Req_3 2_Number_of_Customer_by_State](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/a8954903-b74f-4cf9-be6a-5315f77e374c)
+![Req_3 2_Number_of_Customer_by_State](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/b6cfd01f-4432-41e0-9e8b-408e0fcea113)
 
 Requirement No. 3 - Top 10 customers by total transaction amount
-![Req_3 3_Top_10_Customers_by_Total_Transaction_Amount](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/a77e3ada-3096-4ef0-b783-494e1fffcce1)
+![Req_3 3_Top_10_Customers_by_Total_Transaction_Amount](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/493e4dd0-8e47-4a73-8878-21d7e00799e9)
 
 Requirement No. 4 - Loan application of self employed applicants
-![Req_5 1_Application_Approved_For_Self_Employed](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/90ae5cd7-ab6c-4501-b464-33e62399d572)
+![Req_5 1_Application_Approved_For_Self_Employed](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/a0c8751e-3a8d-4f11-bdda-26252656b5cb)
 
-Requirement No. 4 - Loan application of married applicants
-![Req_5 2_Loan_Rejection_For_Married_Male_Applicants](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/31412e20-f04f-470c-bd7c-f2ebf86d7883)
+Requirement No. 5 - Loan application of married applicants
+![Req_5 2_Loan_Rejection_For_Married_Male_Applicants](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/7165b947-7c32-4c1d-bd03-f8508883b673)
 
-Requirement No. 5.a - Monthly number of trasnactions of year 2018
-![Req_5 3_Months_VS_Transaction_Count](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/22303611-0b60-4ad5-9c6d-b7a08610f4a3)
+Requirement No. 6.a - Monthly number of trasnactions of year 2018
+![Req_5 3_Months_VS_Transaction_Count](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/117c5c73-7102-45d0-8c7a-75ec10ba7dfe)
 
-Requirement No. 5.b - Monthly trasnactions value of year 2018
-![Req_5 3_Months_VS_Transaction_Value](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/cd83e06d-2d98-476e-a3ac-71d69301e7c1)
+Requirement No. 6.b - Monthly trasnactions value of year 2018
+![Req_5 3_Months_VS_Transaction_Value](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/fdb70c13-939c-47e7-8e55-a1fd2da0b321)
 
-Requirement No. 6 - Top 10 branches processed Healthcare transaction
-![Req_5 4_Top_10_Branches_Processed_Healthcare_Trasnaction](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/13cc9b4d-bde9-4fd4-8a0b-2f0c6d9c1dbb)
+Requirement No. 7 - Top 10 branches processed Healthcare transaction
+![Req_5 4_Top_10_Branches_Processed_Healthcare_Transaction](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/01b69fe3-89cc-478e-93f8-8a64c23686bf)
 
 
