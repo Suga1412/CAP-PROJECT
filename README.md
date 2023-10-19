@@ -8,7 +8,7 @@ The project's primary goal is to manage an ETL process for both Credit Card Data
 - Loan Application Dataset
   
 ## Workflow Diagram of the Requirements
-![image](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/61b8e9d2-9e45-4c4e-b2ba-fa97376aaf5d)
+![image](https://github.com/Suga1412/CAP-PROJECT/assets/104521056/196eded4-eeeb-405b-9310-01f8c6234cbd)
 
 ### 1. Credit Card Dataset 
    - **Python and PySpark SQL Program**: Create a program named "Credit Card System" to read and extract data from the following JSON files as per the mapping document:
